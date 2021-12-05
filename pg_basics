@@ -1,0 +1,32 @@
+-- 1. How can you produce a list of all facilities with the word 'Tennis' in their name?
+
+SELECT * FROM cd.facilities fac
+WHERE fac.name LIKE '%Tennis%'
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 2. How can you retrieve the details of facilities with ID 1 and 5? Try to do it without using the OR operator.
+
+SELECT * FROM  cd.facilities fac 
+WHERE fac.facid IN (1,5);
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 3. How can you produce a list of facilities, with each labelled as 'cheap' or 'expensive' 
+depending on if their monthly maintenance cost is more than $100? Return the name and monthly maintenance of the facilities in question.
+(case statement)
+
+select name,
+case when monthlymaintenance > 100 then 'expensive'
+else 'cheap'
+end as cost
+from cd.facilities
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 4. You, for some reason, want a combined list of all surnames and all facility names. Yes, this is a contrived example :-). Produce that list!
+(using union)
+
+select surname from cd.members 
+union
+select name from cd.facilities
