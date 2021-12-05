@@ -1,0 +1,92 @@
+-- use having when there are functions like min, max, sum, avg, count while comparing
+
+
+--1. Insert multiple rows of data into tables
+
+INSERT INTO cd.facilities
+(facid, Name, membercost, guestcost, initialoutlay, monthlymaintenance)
+
+VALUES(
+  '9',
+  'Spa',
+  '20',
+  '30',
+  '100000',
+  '800'),
+  
+(
+  '10',
+  'Squash Court 2',
+  '3.5',
+  '17.5',
+  '5000',
+  '80')
+  
+  
+  --2. Automatically increase value of id
+  
+  INSERT INTO cd.facilities
+(facid, name, membercost, guestcost, 
+ initialoutlay, monthlymaintenance)
+
+  VALUES(
+(SELECT MAX(facid) FROM cd.facilities)+1, 
+  'Spa',
+  20,
+  30,
+  100000,
+  800)       
+  
+  --3. Alter the data or replace the data
+  
+ UPDATE cd.facilities
+SET initialoutlay = 10000
+WHERE facid = 1
+
+--4. Update multiple rows and columns at a same time
+
+update cd.facilities
+set membercost = 6,
+guestcost = 30
+where name like 'Tennis Court%'
+
+--5. We want to alter the price of the second tennis court so that it costs 10% more than the first one. 
+Try to do this without using constant values for the prices, so that we can reuse the statement if we want to.
+
+update cd.facilities 
+set membercost = membercost + 0.1 * (select membercost from cd.facilities where name = 'Tennis Court 1'),
+guestcost = guestcost + 0.1 * (select guestcost from cd.facilities where name = 'Tennis Court 1')
+where name = 'Tennis Court 2'
+
+--6. As part of a clearout of our database, we want to delete all bookings from the cd.bookings table. How can we accomplish this?
+
+DELETE FROM cd.bookings
+
+--7. Delete column
+
+DELETE FROM cd.members mem
+WHERE mem.memid = 37
+
+--8. TO remove data from members who never did bookings
+
+delete from cd.members where memid not in
+(select memid from cd.bookings)
+
+--9. Produce a count of the number of recommendations each member has made. Order by member ID.
+
+select recommendedby , count(recommendedby) as count
+from cd.members where recommendedby is not null
+group by recommendedby
+order by recommendedby
+
+
+--10. Produce a list of facilities with more than 1000 slots booked. Produce an output table consisting of facility id and slots, sorted by facility id.
+
+select facid, sum(slots) as "Total Slots"
+from cd.bookings group by facid
+having sum(slots) > 1000
+order by facid
+
+
+
+
