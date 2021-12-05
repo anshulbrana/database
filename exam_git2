@@ -1,0 +1,252 @@
+--1. list of customers
+
+select * from customers c 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+--2. number of different products?
+
+select distinct p.product_name from products p order by p.product_name 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+--3. count of employees
+
+select count(e.employee_id) from employees e 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 4. total overall revenue
+
+select * from order_details od 
+
+select sum((od.unit_price * od.quantity)*(1-od.discount))
+from order_details od 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 5. total revenue for one specific year
+
+select * from orders o 
+
+select extract ( year from o.order_date) from orders o 
+
+select sum((od.unit_price*od.quantity)*(1-discount))
+from order_details od left join orders o on od.order_id = o.order_id 
+where extract ( year from o.order_date) = 1996
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 6. list of countries covered by delivery
+
+select * from orders o 
+
+select distinct o.ship_country 
+from orders o order by o.ship_country 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 7. list of available transporters
+
+select * from shippers s 
+
+select s.company_name as shippers
+from shippers s order by shippers
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 8. number of customer per countries
+
+select o.ship_country , count(customer_id) as number_of_customers
+from orders o group by o.ship_country order by o.ship_country 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 9. number of orders which are "ordered" but not shipped
+
+select * from orders o 
+
+select count(order_id) as not_shipped
+from orders o where o.shipped_date is null 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 10. all the orders from france and belgium
+
+select o.order_id , o.ship_country 
+from orders o where o.ship_country = 'France' or o.ship_country = 'Belgium'
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 11. most expensive products
+
+select p.product_name, p.unit_price as price 
+from products p order by price desc limit 5
+
+with product_price_rank as (
+    select product_name,quantity_per_unit,unit_price,categories.category_name ,
+    rank() over(partition by products.category_id order by unit_price desc) as rnk 
+    from products
+    join categories on categories.category_id = products.category_id 
+)
+select product_name,quantity_per_unit,unit_price,category_name,rnk 
+from product_price_rank
+where rnk <= 5;
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 12. list of discontinued products
+
+select * from products p 
+
+select p.product_name as name
+from products p where p.discontinued = 1 order by name 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 13. count of product per category
+
+select p.category_id, c.category_name, count(p.product_id) as total_products
+from products p left join categories c on p.category_id = c.category_id 
+group by p.category_id, c.category_name 
+order by p.category_id 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 14. average order price
+
+with total_order_price as ( 
+	select od.order_id , sum((od.unit_price * od.quantity)*(1-od.discount)) as sum
+	from order_details od group by od.order_id 
+	)
+	
+select avg(sum) as average_order_id from total_order_price top
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 15. revenue per category
+
+with total_revenue as(
+select c.category_id as id , c.category_name as name, sum((od.unit_price * od.quantity)*(1-od.discount)) as total_revenue
+from order_details od left join products p on od.product_id = p.product_id 
+left join categories c on p.category_id = c.category_id group by id, name
+)
+select id, name, avg(total_revenue) from total_revenue group by id,name
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 16. number of orders per shipper
+
+
+select s.shipper_id, s.company_name, count(o.order_id) 
+from orders o left join shippers s on o.ship_via = s.shipper_id 
+group by s.shipper_id , s.company_name 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 17. number of orders per employee
+
+select e.employee_id, e.first_name || ' ' || e.last_name as full_name, count(o.order_id )
+from orders o left join employees e on o.employee_id = e.employee_id 
+group by e.employee_id, full_name
+order by e.
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 18. total revenue per supplier
+
+select s.supplier_id, s.company_name , sum((od.unit_price*od.quantity)*(1-od.discount))
+from order_details od left join products p on od.product_id = p.product_id 
+left join suppliers s on p.supplier_id = s.supplier_id 
+group by s.supplier_id, s.company_name 
+order by s.supplier_id 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 19. insert a product with its category
+
+select * from categories c 
+
+insert into categories (category_id, category_name, description,picture)
+values(
+	(select max(category_id) from categories )+1,
+	'Extra',
+	'This is an extra category',
+	''
+	
+)
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 20. create an order (what is required?)
+
+INSERT INTO orders
+(order_id, customer_id, employee_id, order_date, required_date, shipped_date, ship_via, freight, ship_name, ship_address, ship_city, ship_region, ship_postal_code, ship_country)
+VALUES(11078, customer_id, employee_id, 'order_date', 'required_date', '', ship_via, freight, 'ship_name', 'ship_address', 'ship_city', 'ship_region', 'ship_postal_code', 'ship_country');
+
+--Required: customer,shipper and employee ids, then insert into order_details for each product ordered by the customer
+INSERT INTO order_details (order_id, product_id, unit_price, quantity, discount) VALUES(11078, 78, 8, 2, 0);
+INSERT INTO order_details (order_id, product_id, unit_price, quantity, discount) VALUES(11078, 77, 13, 2, 0);
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 21. change the shipped delivery date
+
+select o.order_id, o.shipped_date 
+from orders o order by o.order_id 
+
+update orders set order_date  = '2021-12-05'
+where order_id = 10248
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 22. Adding primary key and foreign key
+
+CREATE TYPE attendancetype AS ENUM ('present','absent','excused');
+
+CREATE TABLE attendance (
+	std_id integer,
+	ses_id integer,
+	att_status attendancetype NOT NULL
+);
+
+ALTER TABLE ONLY attendance ADD CONSTRAINT att_pk PRIMARY KEY (std_id, ses_id);
+ALTER TABLE ONLY attendance ADD CONSTRAINT att_fk1 FOREIGN KEY (std_id) REFERENCES student(std_id) ON DELETE SET NULL;
+ALTER TABLE ONLY attendance ADD CONSTRAINT att_fk2 FOREIGN KEY (ses_id) REFERENCES session(ses_id) ON DELETE SET NULL;
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 23. Boolean
+
+CREATE TABLE candidate (
+	cd_id integer NOT NULL,
+	per_id integer ,
+	cd_is_recruited BOOLEAN NOT NULL
+);
+
+ALTER TABLE ONLY candidate ADD CONSTRAINT cd_pk PRIMARY KEY (cd_id);
+ALTER TABLE ONLY candidate ADD CONSTRAINT cd_fk1 FOREIGN KEY (per_id) REFERENCES person(per_id) ON DELETE SET NULL;
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 24. enum
+
+CREATE TYPE sessiontype AS ENUM ('regular','online','practical','exam');
+
+CREATE TABLE session (
+	ses_id integer NOT NULL,
+	tch_id integer,
+	ses_start_date date NOT NULL,
+	ses_start_time time NOT NULL,
+	ses_end_date date NOT NULL,
+	ses_end_time time NOT NULL,
+	ses_room varchar (25) NOT NULL,
+	ses_type sessiontype NOT NULL
+);
+
+ALTER TABLE ONLY session ADD CONSTRAINT ses_pk PRIMARY KEY (ses_id);
+ALTER TABLE ONLY session ADD CONSTRAINT ses_fk1 FOREIGN KEY (tch_id) REFERENCES teacher(tch_id) ON DELETE SET NULL;
+
+ALTER TABLE ONLY session ADD cor_id integer;
+
+ALTER TABLE ONLY session ADD CONSTRAINT ses_fk2 FOREIGN KEY (cor_id) REFERENCES course(cor_id) ON DELETE SET NULL;
