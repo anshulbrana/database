@@ -30,3 +30,12 @@ from cd.facilities
 select surname from cd.members 
 union
 select name from cd.facilities
+
+OR 
+
+WITH maxdatetable as (
+  SELECT max(joindate) as maxdate from cd.members
+  )
+select mem.firstname, mem.surname, mem.joindate 
+FROM cd.members mem
+WHERE mem.joindate = (SELECT maxdate FROM maxdatetable)
