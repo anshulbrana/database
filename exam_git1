@@ -147,7 +147,7 @@ group by t.teacher_epita_email order by Total_Session desc
 select * 
 from programs
 
-select distinct c.contact_email as email, c.contact_first_name  || ' ' || c.contact_last_name as full_name, 
+select c.contact_email as email, c.contact_first_name  || ' ' || c.contact_last_name as full_name, 
 c.contact_address as address, c.contact_city as city, c.contact_country as country, c.contact_birthdate as birthdate,
 c.contact_age as age, g.grade_score
 
