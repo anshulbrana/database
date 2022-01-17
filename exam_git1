@@ -192,9 +192,9 @@ order by average desc
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --21. List the course taught by teacher 
-select t.teacher_epita_email as email, s.session_course_ref as ref, p.program_assignment as program
+select t.teacher_epita_email as email, s.session_course_ref as ref
 from teachers t right join sessions s on t.teacher_epita_email = s.session_prof_ref 
-right join programs p on s.session_course_rev_ref = p.program_course_rev_ref group by program ,email, ref
+right join programs p on s.session_course_rev_ref = p.program_course_rev_ref group by email, ref
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
