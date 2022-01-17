@@ -27,13 +27,14 @@ from contacts c order by age
 
 --5. Add age column to contacts
 
-alter table contacts drop column contact_age
+alter table contacts add column "contact_age" Integer
+
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --6. Delete column 
 
-alter table contacts add column contact_age integer
+alter table contacts drop column "contact_age"
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------
 
